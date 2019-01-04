@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fasttrack/fasting_status_model.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class FastingStatusWidget extends StatefulWidget {
   @override
@@ -36,25 +37,28 @@ class FastingStatusWidgetState extends State<FastingStatusWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(top: 10.0, bottom: 5.0),
-            child: Text(
-              'Currently ${_fastingStatus.isFasting ? 'fasting' : 'nosh time'}',
-              style: Theme.of(context).textTheme.display1,
+    final timeFormat = DateFormat("h:mm:ss a");
+    return Center(
+      child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.only(top: 10.0, bottom: 5.0),
+              child: Text(
+                'Currently ${_fastingStatus.isFasting ? 'fasting' : 'nosh time'}',
+                style: Theme.of(context).textTheme.display1,
+              ),
             ),
-          ),
-          Text(
-            _fastingStatus.isFasting ?
-            'Fast ends in ${formatDuration(_fastingStatus.timeUntilFastEnds)}'
-                :
-            'Fasting beings in ${formatDuration(_fastingStatus.timeUntilFastStarts)}',
-            style: Theme.of(context).textTheme.title,
-          )
-        ]
+            Text(
+              _fastingStatus.isFasting ?
+              'Fast ends in ${formatDuration(_fastingStatus.timeUntilFastEnds)}'
+                  :
+              'Fasting beings in ${formatDuration(_fastingStatus.timeUntilFastStarts)}',
+              style: Theme.of(context).textTheme.title,
+            )
+          ]
+      ),
     );
   }
 

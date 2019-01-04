@@ -1,5 +1,7 @@
 import 'package:fasttrack/fast_track_icons_icons.dart';
 import 'package:fasttrack/fasting_status_widget.dart';
+import 'package:fasttrack/journal_widget.dart';
+import 'package:fasttrack/profile_widget.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
@@ -22,73 +24,9 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.indigo,
       ),
-//      home: FastingPage(title: 'Fast Track'),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => FastingPage(title: 'Fast tracking'),
-        '/journal': (context) => JournalPage()
-      },
+      home: FastingPage(title: 'Fast Track'),
     );
   }
-}
-
-AppNavigationBar appBottomNavigationBar() {
-  return AppNavigationBar();
-}
-
-class AppNavigationBar extends StatefulWidget {
-  @override
-  AppNavigationBarState createState() {
-    return new AppNavigationBarState();
-  }
-}
-
-// @todo improve navigation via https://willowtreeapps.com/ideas/how-to-use-flutter-to-build-an-app-with-bottom-navigation
-// instead of routes and pages, array of children things in one page.
-class AppNavigationBarState extends State<AppNavigationBar> {
-  int _currentIndex = 0;
-  List<int> _history = [0];
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: _currentIndex,
-      iconSize: 28,
-      items: [
-        BottomNavigationBarItem(
-          icon: new Icon(FastTrackIcons.fasting),
-          title: new Text('Fasting'),
-        ),
-        BottomNavigationBarItem(
-          icon: new Icon(FastTrackIcons.journal),
-          title: new Text('Journal'),
-        ),
-        BottomNavigationBarItem(
-            icon: Icon(FastTrackIcons.profile),
-            title: Text('Profile')
-        )
-      ],
-      onTap: (int index) {
-        _history.add(index);
-        setState(() => _currentIndex = index);
-        switch (index) {
-          case 1:
-            Navigator.pushNamed(context, '/journal');
-            break;
-          case 0:
-          default:
-            Navigator.pushNamed(context, '/');
-            break;
-        }
-      },
-    );
-  }
-}
-
-SafeArea appBody(Widget child) {
-  return SafeArea(
-    child: child,
-  );
 }
 
 class FastingPage extends StatefulWidget {
@@ -109,6 +47,13 @@ class FastingPage extends StatefulWidget {
 }
 
 class _FastingPageState extends State<FastingPage> {
+  int _currentIndex = 0;
+  final List<Widget> _children = [
+    FastingStatusWidget(),
+    JournalWidget(),
+    ProfileWidget()
+  ];
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -118,15 +63,29 @@ class _FastingPageState extends State<FastingPage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-        bottomNavigationBar: appBottomNavigationBar(),
-        body: appBody(
-            Center(
-              // Center is a layout widget. It takes a single child and positions it
-              // in the middle of the parent.
-              child: Column(
-                children: <Widget>[FastingStatusWidget()],
-              ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          iconSize: 28,
+          items: [
+            BottomNavigationBarItem(
+              icon: new Icon(FastTrackIcons.fasting),
+              title: new Text('Fasting'),
+            ),
+            BottomNavigationBarItem(
+              icon: new Icon(FastTrackIcons.journal),
+              title: new Text('Journal'),
+            ),
+            BottomNavigationBarItem(
+                icon: Icon(FastTrackIcons.profile),
+                title: Text('Profile')
             )
+          ],
+          onTap: (int index) {
+            setState(() => _currentIndex = index);
+          },
+        ),
+        body: SafeArea(
+          child: _children[_currentIndex],
         ),
         floatingActionButton: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -150,25 +109,5 @@ class _FastingPageState extends State<FastingPage> {
                 onPressed: () {}),
           ],
         ));
-  }
-}
-
-class JournalPage extends StatefulWidget {
-  @override
-  JournalPageState createState() {
-    return new JournalPageState();
-  }
-}
-
-class JournalPageState extends State<JournalPage> {
-  @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    return Scaffold(
-      bottomNavigationBar: appBottomNavigationBar(),
-      body: appBody(
-        Text('journal')
-      )
-    );
   }
 }
