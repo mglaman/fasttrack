@@ -7,12 +7,50 @@ import 'package:numberpicker/numberpicker.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   static FirebaseAnalytics analytics = FirebaseAnalytics();
   static FirebaseAnalyticsObserver observer = FirebaseAnalyticsObserver(analytics: analytics);
+
+  Widget _handleCurrentScreen() {
+    return new StreamBuilder<FirebaseUser>(
+        stream: FirebaseAuth.instance.onAuthStateChanged,
+        builder: (BuildContext context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Scaffold(
+              body: Center(
+                child: Text('Loading!'),
+              ),
+            );
+          } else {
+            if (snapshot.hasData) {
+              return FastingPage(
+                title: 'Fast Track',
+                analytics: analytics,
+                observer: observer,
+              );
+            }
+
+            return Scaffold(
+              body: Center(
+                child: RaisedButton(
+                    child: Text("Begin"),
+                    onPressed: () async {
+                      final FirebaseUser user = await FirebaseAuth.instance.signInAnonymously();
+                      print(user.isAnonymous);
+                      print(user.displayName);
+                      print(user.uid);
+                    }
+                ),
+              ),
+            );
+          }
+        }
+    );
+  }
 
   // This widget is the root of your application.
   @override
@@ -31,11 +69,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.indigo,
       ),
-      home: FastingPage(
-          title: 'Fast Track',
-        analytics: analytics,
-        observer: observer,
-      ),
+      home: _handleCurrentScreen(),
     );
   }
 }
