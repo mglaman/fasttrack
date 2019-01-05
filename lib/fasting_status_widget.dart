@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fasttrack/fasting_status_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FastingStatusWidget extends StatefulWidget {
   @override
@@ -12,24 +13,34 @@ class FastingStatusWidget extends StatefulWidget {
 }
 
 class FastingStatusWidgetState extends State<FastingStatusWidget> {
-  Timer timer;
-  FastingStatus _fastingStatus = new FastingStatus();
+  Timer _timer;
+  FastingStatus _fastingStatus;
 
   @override
   void initState() {
-    timer = new Timer.periodic(new Duration(seconds: 1), callback);
+    _loadData();
     super.initState();
   }
   void callback(Timer timer) {
     setState(() {
-      _fastingStatus = new FastingStatus();
+      _fastingStatus.tick();
+    });
+  }
+  void _loadData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _fastingStatus = new FastingStatus(
+          prefs.getInt('fastStartHour') ?? 20,
+          prefs.getInt('fastStartMinute') ?? 00,
+          prefs.getInt('fastEndHour') ?? 12,
+          prefs.getInt('fastEndMinute') ?? 00
+      );
+      _timer = new Timer.periodic(new Duration(seconds: 1), callback);
     });
   }
 
-  String twoDigits(int n) {
-    if (n >= 10) return "$n";
-    return "0$n";
-  }
+
+  String twoDigits(int n) => (n >= 10) ? "$n" : "0$n";
 
   String formatDuration(Duration d) {
     return "${d.inHours}:${twoDigits(d.inMinutes.remainder(Duration.minutesPerHour))}:${twoDigits(d.inSeconds.remainder(Duration.secondsPerMinute))}";
@@ -37,7 +48,11 @@ class FastingStatusWidgetState extends State<FastingStatusWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final timeFormat = DateFormat("h:mm:ss a");
+    if (_fastingStatus == null) {
+      return Center(
+        child: Text("Loading..."),
+      );
+    }
     return Center(
       child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -46,15 +61,15 @@ class FastingStatusWidgetState extends State<FastingStatusWidget> {
             Padding(
               padding: EdgeInsets.only(top: 10.0, bottom: 5.0),
               child: Text(
-                'Currently ${_fastingStatus.isFasting ? 'fasting' : 'nosh time'}',
+                'Currently ${_fastingStatus.isFasting() ? 'fasting' : 'nosh time'}',
                 style: Theme.of(context).textTheme.display1,
               ),
             ),
             Text(
-              _fastingStatus.isFasting ?
+              _fastingStatus.isFasting() ?
               'Fast ends in ${formatDuration(_fastingStatus.timeUntilFastEnds)}'
                   :
-              'Fasting beings in ${formatDuration(_fastingStatus.timeUntilFastStarts)}',
+              'Fasting begins in ${formatDuration(_fastingStatus.timeUntilFastStarts)}',
               style: Theme.of(context).textTheme.title,
             )
           ]
@@ -64,8 +79,8 @@ class FastingStatusWidgetState extends State<FastingStatusWidget> {
 
   @override
   void dispose() {
-    timer?.cancel();
-    timer = null;
+    _timer?.cancel();
+    _timer = null;
     super.dispose();
   }
 }

@@ -1,23 +1,39 @@
 class FastingStatus {
+  FastingStatus(this._fastStartHour, this._fastStartMinute, this._fastEndHour, this._fastEndMinute);
   DateTime _dateTime = new DateTime.now();
-  int _fastStart = 20;
-  int _fastEnd = 12;
+  final int _fastStartHour;
+  final int _fastStartMinute;
+  final int _fastEndHour;
+  final int _fastEndMinute;
 
   DateTime get dateTime => _dateTime;
   DateTime get fastStart => new DateTime(
       _dateTime.year,
       _dateTime.month,
       _dateTime.day,
-      _fastStart
+      _fastStartHour,
+      _fastStartMinute
   );
   DateTime get fastEnd => new DateTime(
       _dateTime.year,
       _dateTime.month,
       _dateTime.day,
-      _fastEnd
+      _fastEndHour,
+      _fastEndMinute
   );
 
-  bool get isFasting => _dateTime.isAfter(fastStart) && dateTime.isBefore(fastEnd);
+  tick() => _dateTime = new DateTime.now();
+  isFasting() {
+    if (_dateTime.isAfter(fastStart)) {
+      return true;
+    }
+    if (dateTime.isBefore(fastEnd)) {
+      return true;
+    }
+
+    return false;
+  }
+
   Duration get timeUntilFastStarts => fastStart.difference(_dateTime);
-  Duration get timeUntilFastEnds => fastEnd.difference(_dateTime);
+  Duration get timeUntilFastEnds => fastEnd.add(Duration(days: 1)).difference(_dateTime);
 }
