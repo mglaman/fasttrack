@@ -23,6 +23,10 @@ dependencies:
   shared_preferences: ^0.4.3
   numberpicker: ^0.1.7
 
+  firebase_core: ^0.2.5
+  firebase_analytics: ^1.0.4
+  cloud_firestore: ^0.8.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

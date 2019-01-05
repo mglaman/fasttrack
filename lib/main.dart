@@ -4,11 +4,16 @@ import 'package:fasttrack/journal_widget.dart';
 import 'package:fasttrack/profile_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:numberpicker/numberpicker.dart';
-
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_analytics/observer.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
+  static FirebaseAnalytics analytics = FirebaseAnalytics();
+  static FirebaseAnalyticsObserver observer = FirebaseAnalyticsObserver(analytics: analytics);
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -26,29 +31,33 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.indigo,
       ),
-      home: FastingPage(title: 'Fast Track'),
+      home: FastingPage(
+          title: 'Fast Track',
+        analytics: analytics,
+        observer: observer,
+      ),
     );
   }
 }
 
 class FastingPage extends StatefulWidget {
-  FastingPage({Key key, this.title}) : super(key: key);
+  FastingPage({Key key, this.title, this.analytics, this.observer}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
   // how it looks.
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
   final String title;
+  final FirebaseAnalytics analytics;
+  final FirebaseAnalyticsObserver observer;
 
   @override
-  _FastingPageState createState() => _FastingPageState();
+  _FastingPageState createState() => _FastingPageState(analytics, observer);
 }
 
 class _FastingPageState extends State<FastingPage> {
+  _FastingPageState(this.analytics, this.observer);
+
   double _currentWeight = 252.6;
   int _currentIndex = 0;
   final List<Widget> _children = [
@@ -56,6 +65,8 @@ class _FastingPageState extends State<FastingPage> {
     JournalWidget(),
     ProfileWidget()
   ];
+  final FirebaseAnalyticsObserver observer;
+  final FirebaseAnalytics analytics;
 
   @override
   Widget build(BuildContext context) {
@@ -80,82 +91,113 @@ class _FastingPageState extends State<FastingPage> {
             ),
             const BottomNavigationBarItem(
                 icon: const Icon(FastTrackIcons.profile),
-                title: const Text('Profile')
-            )
+                title: const Text('Profile'))
           ],
           onTap: (int index) {
-            setState(() => _currentIndex = index);
+            setState(() {
+              List<String> _screenNames = [
+                'Fasting',
+                'Journal',
+                'Profile',
+              ];
+              analytics.setCurrentScreen(
+                  screenName: _screenNames[index]
+              );
+              _currentIndex = index;
+            });
           },
         ),
         body: SafeArea(
           child: _children[_currentIndex],
         ),
-        floatingActionButton: _currentIndex == 2 ? null : Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
-              child: FloatingActionButton(
-                heroTag: 'logFood',
-                tooltip: 'Log food',
-                mini: true,
-                child: Icon(Icons.add),
-                backgroundColor: Theme.of(context).accentColor,
-                onPressed: () async {
-                  await showDialog(
-                      context: context,
-                      builder: (BuildContext buildContext) => new AlertDialog(
-                        title: const Text('Log food?'),
-                        content: const Text("Track when you eat during the day, and if track if you break your fast."),
-                        actions: <Widget>[
-                          new FlatButton(
-                              onPressed: () {
-                                Navigator.of(buildContext).pop('cancel');
-                              },
-                              child: const Text("Cancel")
-                          ),
-                          new FlatButton(
-                              onPressed: () {
-                                Navigator.of(buildContext).pop('food');
-                              },
-                              child: Text(
-                                  "I ate!",
-                              )
-                          )
-                        ],
-                      )
-                  ).then((value) => {
-
-                  });
-                },
-              ),
-            ),
-            FloatingActionButton(
-                heroTag: 'logWeight',
-                tooltip: 'Log weight',
-                child: Icon(Icons.assessment),
-                onPressed: () async {
-                  await showDialog(
-                    context: context,
-                    builder: (BuildContext buildContext) => new NumberPickerDialog.decimal(
-                      title: const Text('Log weight'),
-                      minValue: 100,
-                      maxValue: 500,
-                      decimalPlaces: 1,
-                      initialDoubleValue: _currentWeight,
-                    )
-                  ).then((value) {
-                    if (value != null) {
-                      if (value is double) {
-                        setState(() {
-                          _currentWeight = value;
+        floatingActionButtonAnimator: NoScalingAnimation(),
+        floatingActionButton: _currentIndex == 2
+            ? null
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 8.0),
+                    child: FloatingActionButton(
+                      heroTag: 'logFood',
+                      tooltip: 'Log food',
+                      mini: true,
+                      child: Icon(Icons.add),
+                      backgroundColor: Theme.of(context).accentColor,
+                      onPressed: () async {
+                        await showDialog(
+                            context: context,
+                            builder: (BuildContext buildContext) =>
+                                new AlertDialog(
+                                  title: const Text('Log food?'),
+                                  content: const Text(
+                                      "Track when you eat during the day, and if track if you break your fast."),
+                                  actions: <Widget>[
+                                    new FlatButton(
+                                        onPressed: () {
+                                          Navigator.of(buildContext)
+                                              .pop('cancel');
+                                        },
+                                        child: const Text("Cancel")),
+                                    new FlatButton(
+                                        onPressed: () => Navigator.of(buildContext).pop('food'),
+                                        child: Text("I ate!",))
+                                  ],
+                                )).then((value) => {});
+                      },
+                    ),
+                  ),
+                  FloatingActionButton(
+                      heroTag: 'logWeight',
+                      tooltip: 'Log weight',
+                      child: Icon(Icons.assessment),
+                      onPressed: () async {
+                        await showDialog(
+                            context: context,
+                            builder: (BuildContext buildContext) =>
+                                new NumberPickerDialog.decimal(
+                                  title: const Text('Log weight'),
+                                  minValue: 100,
+                                  maxValue: 500,
+                                  decimalPlaces: 1,
+                                  initialDoubleValue: _currentWeight,
+                                )).then((value) {
+                          if (value != null) {
+                            if (value is double) {
+                              setState(() {
+                                _currentWeight = value;
+                                Firestore.instance.collection('testweights').add({
+                                  'weight': value,
+                                  'when': DateTime.now(),
+                                });
+                              });
+                            }
+                          }
                         });
-                      }
-                    }
-                  });
-                }),
-          ],
-        ));
+                      }),
+                ],
+              ));
+  }
+}
+
+class NoScalingAnimation extends FloatingActionButtonAnimator{
+  double _x;
+  double _y;
+  @override
+  Offset getOffset({Offset begin, Offset end, double progress}) {
+    _x = begin.dx +(end.dx - begin.dx)*progress ;
+    _y = begin.dy +(end.dy - begin.dy)*progress;
+    return Offset(_x,_y);
+  }
+
+  @override
+  Animation<double> getRotationAnimation({Animation<double> parent}) {
+    return Tween<double>(begin: 1.0, end: 1.0).animate(parent);
+  }
+
+  @override
+  Animation<double> getScaleAnimation({Animation<double> parent}) {
+    return Tween<double>(begin: 1.0, end: 1.0).animate(parent);
   }
 }

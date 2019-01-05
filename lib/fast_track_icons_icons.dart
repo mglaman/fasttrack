@@ -11,7 +11,7 @@
 ///      fonts:
 ///       - asset: fonts/FastTrackIcons.ttf
 ///
-/// 
+///
 ///
 import 'package:flutter/widgets.dart';
 
