@@ -3,6 +3,8 @@ import 'package:fasttrack/fasting_status_widget.dart';
 import 'package:fasttrack/journal_widget.dart';
 import 'package:fasttrack/profile_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:numberpicker/numberpicker.dart';
+
 
 void main() => runApp(MyApp());
 
@@ -47,6 +49,7 @@ class FastingPage extends StatefulWidget {
 }
 
 class _FastingPageState extends State<FastingPage> {
+  double _currentWeight = 252.6;
   int _currentIndex = 0;
   final List<Widget> _children = [
     FastingStatusWidget(),
@@ -68,16 +71,16 @@ class _FastingPageState extends State<FastingPage> {
           iconSize: 28,
           items: [
             BottomNavigationBarItem(
-              icon: new Icon(FastTrackIcons.fasting),
-              title: new Text('Fasting'),
+              icon: const Icon(FastTrackIcons.fasting),
+              title: const Text('Fasting'),
             ),
             BottomNavigationBarItem(
-              icon: new Icon(FastTrackIcons.journal),
-              title: new Text('Journal'),
+              icon: const Icon(FastTrackIcons.journal),
+              title: const Text('Journal'),
             ),
-            BottomNavigationBarItem(
-                icon: Icon(FastTrackIcons.profile),
-                title: Text('Profile')
+            const BottomNavigationBarItem(
+                icon: const Icon(FastTrackIcons.profile),
+                title: const Text('Profile')
             )
           ],
           onTap: (int index) {
@@ -87,26 +90,71 @@ class _FastingPageState extends State<FastingPage> {
         body: SafeArea(
           child: _children[_currentIndex],
         ),
-        floatingActionButton: Column(
+        floatingActionButton: _currentIndex == 2 ? null : Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.end,
           children: <Widget>[
             Padding(
               padding: EdgeInsets.only(bottom: 8.0),
               child: FloatingActionButton(
-                heroTag: null,
+                heroTag: 'logFood',
                 tooltip: 'Log food',
                 mini: true,
                 child: Icon(Icons.add),
                 backgroundColor: Theme.of(context).accentColor,
-                onPressed: () {},
+                onPressed: () async {
+                  await showDialog(
+                      context: context,
+                      builder: (BuildContext buildContext) => new AlertDialog(
+                        title: const Text('Log food?'),
+                        content: const Text("Track when you eat during the day, and if track if you break your fast."),
+                        actions: <Widget>[
+                          new FlatButton(
+                              onPressed: () {
+                                Navigator.of(buildContext).pop('cancel');
+                              },
+                              child: const Text("Cancel")
+                          ),
+                          new FlatButton(
+                              onPressed: () {
+                                Navigator.of(buildContext).pop('food');
+                              },
+                              child: Text(
+                                  "I ate!",
+                              )
+                          )
+                        ],
+                      )
+                  ).then((value) => {
+
+                  });
+                },
               ),
             ),
             FloatingActionButton(
-                heroTag: null,
+                heroTag: 'logWeight',
                 tooltip: 'Log weight',
                 child: Icon(Icons.assessment),
-                onPressed: () {}),
+                onPressed: () async {
+                  await showDialog(
+                    context: context,
+                    builder: (BuildContext buildContext) => new NumberPickerDialog.decimal(
+                      title: const Text('Log weight'),
+                      minValue: 100,
+                      maxValue: 500,
+                      decimalPlaces: 1,
+                      initialDoubleValue: _currentWeight,
+                    )
+                  ).then((value) {
+                    if (value != null) {
+                      if (value is double) {
+                        setState(() {
+                          _currentWeight = value;
+                        });
+                      }
+                    }
+                  });
+                }),
           ],
         ));
   }

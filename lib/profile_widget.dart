@@ -55,6 +55,9 @@ class ProfileWidgetState extends State<ProfileWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          SizedBox(
+            height: 20,
+          ),
           Text(
             'Profile',
             style: TextStyle(fontWeight: FontWeight.w400, fontSize: 28),

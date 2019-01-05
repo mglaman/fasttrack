@@ -21,6 +21,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   intl: ^0.15.0
   shared_preferences: ^0.4.3
+  numberpicker: ^0.1.7
 
 dev_dependencies:
   flutter_test:
