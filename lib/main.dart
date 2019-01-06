@@ -1,3 +1,4 @@
+import 'package:fasttrack/app_user.dart';
 import 'package:fasttrack/fast_track_icons_icons.dart';
 import 'package:fasttrack/fasting_status_widget.dart';
 import 'package:fasttrack/journal_widget.dart';
@@ -9,7 +10,11 @@ import 'package:firebase_analytics/observer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-void main() => runApp(MyApp());
+final FirebaseAuth _auth = FirebaseAuth.instance;
+
+void main() {
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   static FirebaseAnalytics analytics = FirebaseAnalytics();
@@ -17,7 +22,7 @@ class MyApp extends StatelessWidget {
 
   Widget _handleCurrentScreen() {
     return new StreamBuilder<FirebaseUser>(
-        stream: FirebaseAuth.instance.onAuthStateChanged,
+        stream: _auth.onAuthStateChanged,
         builder: (BuildContext context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Scaffold(
@@ -27,26 +32,17 @@ class MyApp extends StatelessWidget {
             );
           } else {
             if (snapshot.hasData) {
+              print("Logged in ${snapshot.data.uid}");
+              AppUser.currentUser = snapshot.data;
               return FastingPage(
                 title: 'Fast Track',
                 analytics: analytics,
                 observer: observer,
               );
+            } else {
+              FirebaseAuth.instance.signInAnonymously();
+              print("Sign in in as anonymous");
             }
-
-            return Scaffold(
-              body: Center(
-                child: RaisedButton(
-                    child: Text("Begin"),
-                    onPressed: () async {
-                      final FirebaseUser user = await FirebaseAuth.instance.signInAnonymously();
-                      print(user.isAnonymous);
-                      print(user.displayName);
-                      print(user.uid);
-                    }
-                ),
-              ),
-            );
           }
         }
     );
@@ -204,6 +200,7 @@ class _FastingPageState extends State<FastingPage> {
                                 Firestore.instance.collection('testweights').add({
                                   'weight': value,
                                   'when': DateTime.now(),
+                                  'owner': AppUser.currentUser.uid
                                 });
                               });
                             }

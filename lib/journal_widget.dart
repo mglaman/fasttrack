@@ -1,3 +1,4 @@
+import 'package:fasttrack/app_user.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -24,6 +25,10 @@ class JournalWidget extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: Firestore.instance
           .collection('testweights')
+          .where(
+            "owner",
+            isEqualTo: AppUser.currentUser.uid
+          )
           .orderBy("when", descending: true)
           .snapshots(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -58,17 +63,20 @@ class JournalWidget extends StatelessWidget {
 class Record {
   final double weight;
   final DateTime when;
+  final String owner;
   final DocumentReference reference;
 
   Record.fromMap(Map<String, dynamic> map, {this.reference})
       : assert(map['weight'] != null),
         assert(map['when'] != null),
+        assert(map['owner'] != null),
         weight = map['weight'],
-        when = map['when'];
+        when = map['when'],
+        owner = map['owner'];
 
   Record.fromSnapshot(DocumentSnapshot snapshot)
       : this.fromMap(snapshot.data, reference: snapshot.reference);
 
   @override
-  String toString() => "Record<$weight:$when>";
+  String toString() => "Record<$weight:$when:$owner>";
 }
