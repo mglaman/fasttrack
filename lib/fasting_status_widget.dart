@@ -52,6 +52,22 @@ class FastingStatusWidgetState extends State<FastingStatusWidget> {
         child: Text("Loading..."),
       );
     }
+
+    double getProgressIndicatorValue() {
+      Duration _entireDuration;
+      double value;
+      if (_fastingStatus.isFasting()) {
+        _entireDuration = _fastingStatus.fastEnd.add(Duration(days: 1)).difference(_fastingStatus.fastStart);
+        value = _fastingStatus.timeUntilFastEnds.inSeconds / _entireDuration.inSeconds;
+//        print("Fasting: $value");
+      } else {
+        _entireDuration = _fastingStatus.fastStart.difference(_fastingStatus.fastEnd);
+        value = _fastingStatus.timeUntilFastStarts.inSeconds / _entireDuration.inSeconds;
+//        print("Noshing: $value");
+      }
+      return 1 - value;
+    }
+
     return Center(
       child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -70,6 +86,18 @@ class FastingStatusWidgetState extends State<FastingStatusWidget> {
                   :
               'Fasting begins in ${formatDuration(_fastingStatus.timeUntilFastStarts)}',
               style: Theme.of(context).textTheme.title,
+            ),
+            SizedBox(
+              height: 50,
+            ),
+            SizedBox(
+              child: CircularProgressIndicator(
+                value: getProgressIndicatorValue(),
+                strokeWidth: 15.0,
+                valueColor: new AlwaysStoppedAnimation<Color>(_fastingStatus.isFasting() ? Colors.red : Colors.green),
+              ),
+              width: 200,
+              height: 200,
             )
           ]
       ),
