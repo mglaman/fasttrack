@@ -32,7 +32,10 @@ class JournalWidget extends StatelessWidget {
           .orderBy("when", descending: true)
           .snapshots(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if (!snapshot.hasData) return LinearProgressIndicator();
+        if (snapshot.hasError)
+          return new Text('Error: ${snapshot.error}');
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return LinearProgressIndicator();
 
         return Expanded(
           child: _buildListView(snapshot.data.documents),

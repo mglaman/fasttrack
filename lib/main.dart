@@ -42,6 +42,11 @@ class MyApp extends StatelessWidget {
             } else {
               FirebaseAuth.instance.signInAnonymously();
               print("Sign in in as anonymous");
+              return Scaffold(
+                body: Center(
+                  child: Text('Loading...'),
+                ),
+              );
             }
           }
         }

@@ -35,5 +35,11 @@ class FastingStatus {
   }
 
   Duration get timeUntilFastStarts => fastStart.difference(_dateTime);
-  Duration get timeUntilFastEnds => fastEnd.add(Duration(days: 1)).difference(_dateTime);
+  Duration get timeUntilFastEnds {
+    if (_dateTime.hour < 12) {
+      return fastEnd.difference(_dateTime);
+    }
+    return fastEnd.add(Duration(days: 1)).difference(_dateTime);
+
+  }
 }
