@@ -40,11 +40,46 @@ class MyApp extends StatelessWidget {
                 observer: observer,
               );
             } else {
-              FirebaseAuth.instance.signInAnonymously();
-              print("Sign in in as anonymous");
               return Scaffold(
-                body: Center(
-                  child: Text('Loading...'),
+                body: Container(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      SizedBox(
+                        height: 20,
+                      ),
+                      Text(
+                        'Set up your profile',
+                        style: TextStyle(fontWeight: FontWeight.w400, fontSize: 28),
+                      ),
+                      RaisedButton(
+                        child: Text("Save and get started"),
+                        onPressed: () {
+                          FirebaseAuth.instance.signInAnonymously().then((FirebaseUser firebaseUser) {
+                            Firestore.instance.collection('accounts').add({
+                              'startingWeight': 252.6,
+                              'owner': firebaseUser.uid,
+                              'fastStart': {
+                                'hour': 20,
+                                'minute': 00
+                              },
+                              'fastEnd': {
+                                'hour': 12,
+                                'minute': 00
+                              },
+                            });
+                            Firestore.instance.collection('testweights').add({
+                              'weight': 252.6,
+                              'when': DateTime.now(),
+                              'owner': firebaseUser.uid
+                            });
+                          });
+                          print("Sign in in as anonymous");
+                        },
+                      )
+                    ],
+                  ),
                 ),
               );
             }

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fasttrack/app_user.dart';
 import 'package:fasttrack/time_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +12,7 @@ class ProfileWidget extends StatefulWidget {
   }
 }
 
+// @todo Convert to streambuilder.
 class ProfileWidgetState extends State<ProfileWidget> {
   final timeFormat = DateFormat("h:mm a");
 
@@ -18,6 +21,8 @@ class ProfileWidgetState extends State<ProfileWidget> {
   TimeOfDay fastEnd;
   TimeOfDay fastStart;
 
+  DocumentSnapshot account;
+
   @override
   void initState() {
     _loadData();
@@ -25,17 +30,27 @@ class ProfileWidgetState extends State<ProfileWidget> {
   }
 
   _loadData() async {
+    print(AppUser.currentUser.uid);
+    QuerySnapshot accountDocuments = await Firestore.instance
+        .collection('accounts')
+        .where(
+          "owner",
+          isEqualTo: AppUser.currentUser.uid
+        )
+        .getDocuments();
+    account = accountDocuments.documents.first;
+
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       fastEnd = new TimeOfDay(
-          hour: prefs.getInt('fastEndHour') ?? 12,
-          minute: prefs.getInt('fastEndMinute') ?? 00,
+          hour: account.data['fastEnd']['hour'] ?? 12,
+          minute: account.data['fastEnd']['minute'] ?? 00,
       );
       fastEndTextController.text = timeFormat.format(DateTime(0).add(Duration(hours: fastEnd.hour, minutes: fastEnd.minute)));
 
       fastStart = new TimeOfDay(
-        hour: prefs.getInt('fastStartHour') ?? 20,
-        minute: prefs.getInt('fastStartMinute') ?? 00,
+        hour: account.data['fastStart']['hour'] ?? 20,
+        minute: account.data['fastStart']['minute'] ?? 00,
       );
       fastStartTextController.text = timeFormat.format(DateTime(0).add(Duration(hours: fastStart.hour, minutes: fastStart.minute)));
     });
@@ -43,8 +58,12 @@ class ProfileWidgetState extends State<ProfileWidget> {
   _updateFastingTimeSetting(key, TimeOfDay value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      prefs.setInt("${key}Hour", value.hour);
-      prefs.setInt("${key}Minute", value.minute);
+      Firestore.instance.document(account.documentID).updateData({
+        '$key': {
+          'hour': value.hour,
+          'minute': value.minute
+        },
+      });
     });
   }
 
