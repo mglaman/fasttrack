@@ -29,8 +29,8 @@ class ProfileWidgetState extends State<ProfileWidget> {
     super.initState();
   }
 
+  // @todo this is broken from prefs -> firestore, move to FutureBuilder
   _loadData() async {
-    print(AppUser.currentUser.uid);
     QuerySnapshot accountDocuments = await Firestore.instance
         .collection('accounts')
         .where(

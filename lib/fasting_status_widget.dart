@@ -28,6 +28,7 @@ class FastingStatusWidgetState extends State<FastingStatusWidget> {
   void _loadData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
+      // @todo this moved to the account document for the user.
       _fastingStatus = new FastingStatus(
           prefs.getInt('fastStartHour') ?? 20,
           prefs.getInt('fastStartMinute') ?? 00,
@@ -59,11 +60,9 @@ class FastingStatusWidgetState extends State<FastingStatusWidget> {
       if (_fastingStatus.isFasting()) {
         _entireDuration = _fastingStatus.fastEnd.add(Duration(days: 1)).difference(_fastingStatus.fastStart);
         value = _fastingStatus.timeUntilFastEnds.inSeconds / _entireDuration.inSeconds;
-//        print("Fasting: $value");
       } else {
         _entireDuration = _fastingStatus.fastStart.difference(_fastingStatus.fastEnd);
         value = _fastingStatus.timeUntilFastStarts.inSeconds / _entireDuration.inSeconds;
-//        print("Noshing: $value");
       }
       return 1 - value;
     }

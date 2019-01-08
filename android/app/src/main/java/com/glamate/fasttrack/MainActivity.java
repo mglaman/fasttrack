@@ -1,4 +1,4 @@
-package com.glamate.fasttrack;
+package com.mglaman.fasttrack;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;

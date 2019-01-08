@@ -1,15 +1,15 @@
-# fasttrack
+# FastTrack
 
-For tracking intermitnent fasting and weight
+FastTrack is an (intermittent fasting)[https://en.wikipedia.org/wiki/Intermittent_fasting] tracker.
 
-## References
+It is my attempt and learning and experimenting with Flutter for mobile application development.
 
-* https://github.com/tattwei46/flutter_login_demo
-* https://pub.dartlang.org/packages/percent_indicator#-readme-tab-
+The app allows you to configure when your fasting period starts and ends, along with providing a
+visual progress display. The app also allows supports weight tracking and will support meal tracking.
 
+![Main screen](assets/screen-example.png)
+## Built with
 
-## TODO
-
-* When it is a new user, do not show main app. Show a configuration form to set initial weight and fasting times.
-* Create a `user` document which stores initial info.
-* Create a first `weight` entry.
+* [Flutter](https://flutter.io)
+* [Firebase](https://firebase.google.com/)
+* [FlutterIcon](http://fluttericon.com/) for custom icon font

@@ -1,3 +1,4 @@
+// @todo needs test coverage
 class FastingStatus {
   FastingStatus(this._fastStartHour, this._fastStartMinute, this._fastEndHour, this._fastEndMinute);
   DateTime _dateTime = new DateTime.now();
@@ -34,7 +35,9 @@ class FastingStatus {
     return false;
   }
 
+  // @todo this specifically needs coverage.
   Duration get timeUntilFastStarts => fastStart.difference(_dateTime);
+  // @todo this specifically needs coverage.
   Duration get timeUntilFastEnds {
     if (_dateTime.hour < 12) {
       return fastEnd.difference(_dateTime);
